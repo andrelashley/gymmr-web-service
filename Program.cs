@@ -1,7 +1,17 @@
 using Gymmr.Data;
+using Gymmr.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddIdentity<AppUser, IdentityRole>(cfg =>
+{
+    cfg.User.RequireUniqueEmail = true;
+    cfg.Password.RequireUppercase = false;
+    cfg.Password.RequireDigit = false;
+    cfg.Password.RequireNonAlphanumeric = false;
+}).AddEntityFrameworkStores<DataContext>();
 
 // Add services to the container.
 builder.Services.AddDbContext<DataContext>(x => x.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
