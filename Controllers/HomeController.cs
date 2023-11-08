@@ -10,15 +10,18 @@ namespace Gymmr.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly SignInManager<AppUser> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
 
         public HomeController(ILogger<HomeController> logger,
-            SignInManager<AppUser> signInManager)
+            SignInManager<AppUser> signInManager,
+            UserManager<AppUser> userManager)
         {
             _logger = logger;
             _signInManager = signInManager;
+            _userManager = userManager;
         }
 
-        public IActionResult Index()
+        public IActionResult Login()
         {
             if (User!.Identity!.IsAuthenticated)
             {
@@ -31,28 +34,67 @@ namespace Gymmr.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            //if (ModelState.IsValid)
-            //{
-            //    var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
+            if (ModelState.IsValid)
+            {
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
 
-            //    if (result.Succeeded)
-            //    {
-            //        if (Request.Query.Keys.Contains("ReturnUrl"))
-            //        {
-            //            Redirect(Request.Query["ReturnUrl"].First()!);
-            //        }
-            //        else
-            //        {
-            //            return RedirectToAction("Controller", "App");
-            //        }
-            //    }
-            //}
+                if (result.Succeeded)
+                {
+                    if (Request.Query.Keys.Contains("ReturnUrl"))
+                    {
+                        Redirect(Request.Query["ReturnUrl"].First()!);
+                    }
+                    else
+                    {
+                        return RedirectToAction("Index", "App");
+                    }
+                }
+            }
 
-            //ModelState.AddModelError("", "Failed to login");
+            ModelState.AddModelError("", "Failed to login");
 
-            //return View();
+            return View();
+        }
 
-            return RedirectToAction("Index", "App");
+        public IActionResult Signup()
+        {
+            if (User!.Identity!.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "App");
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Signup(RegisterViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                AppUser user = await _userManager.FindByEmailAsync(model.Email);
+
+                if (user == null)
+                {
+                    user = new AppUser 
+                    {
+                        UserName = model.UserName,
+                        Email = model.Email,
+                    };
+
+                    var result = await _userManager.CreateAsync(user, model.Password);
+
+                    if (result.Succeeded)
+                    {
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        return RedirectToAction("Index", "App");
+                    }
+                }
+
+            }
+
+            ModelState.AddModelError("", "Failed to sign up");
+
+            return View();
         }
 
         public IActionResult Privacy()
