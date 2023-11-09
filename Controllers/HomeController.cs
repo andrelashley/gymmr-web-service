@@ -77,8 +77,9 @@ namespace Gymmr.Controllers
                 {
                     user = new AppUser 
                     {
-                        UserName = model.UserName,
+                        UserName = model.Email,
                         Email = model.Email,
+                        FirstName = model.FirstName
                     };
 
                     var result = await _userManager.CreateAsync(user, model.Password);
@@ -106,7 +107,7 @@ namespace Gymmr.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            return RedirectToAction("Index", "Home");   
+            return RedirectToAction("Login", "Home");   
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
